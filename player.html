@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player - SoundWave</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="player-wrapper">
+        <!-- Player Header -->
+        <div class="player-header">
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1>Now Playing</h1>
+            <div class="header-spacer"></div>
+        </div>
+
+        <!-- Player + Playlist Layout -->
+        <div class="player-main">
+
+            <!-- Left: Now Playing / Controls -->
+            <div class="player-container">
+
+                <!-- Album Art Section -->
+                <div class="album-section">
+                    <div class="album-art" id="albumArt">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <div class="song-info-main">
+                        <h2 id="songTitle">Welcome to SoundWave</h2>
+                        <p id="songArtist">Select a song to play</p>
+                    </div>
+                </div>
+
+                <!-- Progress Section -->
+                <div class="progress-section">
+                    <div class="time-display">
+                        <span id="currentTime">0:00</span>
+                        <span id="duration">0:00</span>
+                    </div>
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="controls-section">
+                    <button class="control-btn" id="prevBtn" title="Previous">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+                    <button class="control-btn play-btn" id="playBtn" title="Play">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="control-btn" id="nextBtn" title="Next">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+                </div>
+
+                <!-- Volume Control -->
+                <div class="volume-section">
+                    <i class="fas fa-volume-mute"></i>
+                    <input type="range" id="volumeSlider" min="0" max="100" value="100" class="volume-slider">
+                    <i class="fas fa-volume-up"></i>
+                </div>
+
+                <!-- Autoplay Toggle -->
+                <div class="autoplay-section">
+                    <label>Autoplay</label>
+                    <div class="toggle-switch" id="autoplayToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+
+                <!-- Mobile-only Playlist Toggle -->
+                <div class="playlist-toggle">
+                    <button class="toggle-btn" id="playlistToggle">
+                        <i class="fas fa-list"></i> Playlist
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Right: Playlist Sidebar -->
+            <div class="playlist-container" id="playlistContainer">
+                <div class="playlist-header">
+                    <div class="greeting-block">
+                        <h2 id="greetingText">Good morning, Nidhi!</h2>
+                        <p id="moodQuestion">How are you feeling today?</p>
+                    </div>
+                    <button class="close-btn" id="closePlaylist">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Mood Check-in -->
+                <div class="mood-section">
+                    <div class="mood-buttons" id="moodButtons">
+                        <button class="mood-btn" data-mood="happy">😊 Happy</button>
+                        <button class="mood-btn" data-mood="calm">😌 Calm</button>
+                        <button class="mood-btn" data-mood="energetic">🔥 Energetic</button>
+                        <button class="mood-btn" data-mood="focused">🎯 Focused</button>
+                        <button class="mood-btn" data-mood="sleepy">🌙 Sleepy</button>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Search songs or artists..."
+                        class="search-input"
+                    >
+                    <button class="clear-search" id="clearSearch" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <!-- Made For You -->
+                <div class="row-section">
+                    <h3>Made for You</h3>
+                    <p class="row-subtitle">A fresh mix, just for you</p>
+                <div class="card-scroll-row" id="madeForYouRow"></div>
+                </div>
+                <!-- Made For Your Mood -->
+                <div class="row-section">
+                    <h3 id="moodRowTitle">Made for your mood</h3>
+                    <div class="card-scroll-row" id="moodRow"></div>
+                </div>
+
+                <!-- Recently Played -->
+                <div class="row-section">
+                    <h3>Recently Played</h3>
+                    <div class="recent-grid" id="recentlyPlayedRow"></div>
+                </div>
+
+                <!-- Your Favorites -->
+                <div class="row-section">
+                    <h3>Your Favorites</h3>
+                    <p class="row-subtitle">From your collection</p>
+                    <div class="card-scroll-row" id="favoritesRow"></div>
+                </div>
+
+                <!-- Favorites Filter -->
+                <div class="row-section">
+                    <div class="all-songs-header">
+                        <h3>All Songs</h3>
+                        <button class="toggle-btn favorites-filter-btn" id="favoritesToggle">
+                            <i class="fas fa-heart"></i> Favorites
+                        </button>
+                    </div>
+
+                    <div class="playlist" id="playlist"></div>
+
+                    <div class="no-results" id="noResults" style="display: none;">
+                        <i class="fas fa-search"></i>
+                        <p>No songs found</p>
+                    </div>
+
+                    <div class="no-results" id="noFavorites" style="display: none;">
+                        <i class="fas fa-heart"></i>
+                        <p>No favorite songs yet</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Hidden Audio Element -->
+    <audio id="audioPlayer"></audio>
+
+    <script src="player-script.js"></script>
+</body>
+</html>
