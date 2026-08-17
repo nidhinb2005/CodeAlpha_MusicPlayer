@@ -281,18 +281,20 @@ body {
 /* ============ PLAYER PAGE STYLES ============ */
 
 .player-wrapper {
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
     background: linear-gradient(135deg, var(--bg-dark) 0%, var(--secondary-color) 100%);
     display: flex;
     flex-direction: column;
 }
 
 .player-header {
-    padding: 20px;
+    padding: 12px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
 }
 
 .back-btn {
@@ -316,40 +318,46 @@ body {
 .player-main {
     flex: 1;
     display: flex;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 30px;
     padding: 30px 40px 40px;
+    height: 100%;
+    overflow: hidden;
 }
-
 .player-container {
-    flex: 0 1 40%;   /* was: flex: 1; */
+    flex: 0 1 40%;
     min-width: 0;
+    min-height: 0;
+    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
+    justify-content: flex-start;
+    padding: 16px 20px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
 }
-
 /* Album Section */
 .album-section {
     text-align: center;
-    margin-bottom: 50px;
+    margin-bottom: clamp(15px, 3vh, 30px);
 }
 
 .album-art {
-    width: 280px;
-    height: 280px;
+    width: clamp(140px, 24vh, 220px);
+    height: clamp(140px, 24vh, 220px);
     background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-    border-radius: 20px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 120px;
-    margin: 0 auto 30px;
+    font-size: clamp(50px, 9vh, 80px);
+    margin: 0 auto clamp(12px, 2vh, 20px);
     box-shadow: 0 15px 40px rgba(29, 185, 84, 0.3);
     animation: album-spin 20s linear infinite paused;
+    position: relative;
 }
+
 
 .album-art.playing {
     animation-play-state: running;
@@ -374,9 +382,8 @@ body {
 .progress-section {
     width: 100%;
     max-width: 500px;
-    margin-bottom: 40px;
+    margin-bottom: clamp(15px, 3vh, 25px);
 }
-
 .time-display {
     display: flex;
     justify-content: space-between;
@@ -407,7 +414,7 @@ body {
     display: flex;
     gap: 30px;
     align-items: center;
-    margin-bottom: 50px;
+    margin-bottom: clamp(15px, 3vh, 25px);
 }
 
 .control-btn {
@@ -448,7 +455,7 @@ body {
     display: flex;
     align-items: center;
     gap: 15px;
-    margin-bottom: 40px;
+    margin-bottom: clamp(10px, 2vh, 20px);
 }
 
 .volume-section i {
@@ -516,11 +523,11 @@ body {
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 20px;
-    flex: 1 1 60%;   /* was: width: 380px; */
-    max-height: calc(100vh - 160px);
+    flex: 1 1 60%;
+    height: 100%;
     overflow-y: auto;
+    scroll-behavior: smooth;
 }
-
 /* Close button and "open" collapse behavior only matter on mobile */
 .playlist-container .close-btn {
     display: none;
@@ -614,8 +621,9 @@ body {
 /* Horizontally scrolling card row (mood + favorites) */
 .card-scroll-row {
     display: flex;
+    flex-wrap: wrap;
     gap: 16px;
-    overflow-x: auto;
+    overflow-x: visible;
     padding-bottom: 8px;
 }
 
@@ -934,7 +942,7 @@ body {
     display: flex;
     align-items: center;
     gap: 15px;
-    margin-bottom: 30px;
+    margin-bottom: 0;
 }
 
 .autoplay-section label {
@@ -1027,4 +1035,180 @@ body {
     .playlist-container .close-btn {
         display: flex;
     }
+}
+/* ============ MOODFLOW + REACTIONS ============ */
+.moodflow-section {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    margin-top: 60px;
+    margin-bottom: 20px;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.moodflow-label {
+    font-weight: bold;
+    color: var(--primary-color);
+    font-size: 14px;
+    letter-spacing: 0.5px;
+}
+
+.moodflow-tagline {
+    color: var(--text-secondary);
+    font-size: 11px;
+    margin: 2px 0 10px;
+    font-style: italic;
+}
+
+.moodflow-carousel {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 4px 2px 12px;
+    scroll-behavior: smooth;
+}
+
+.moodflow-carousel::-webkit-scrollbar {
+    height: 5px;
+}
+
+.moodflow-carousel::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
+}
+
+.moodflow-stage {
+    flex-shrink: 0;
+    width: 90px;
+    padding: 12px 8px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-secondary);
+    transition: all 0.3s;
+}
+
+.moodflow-stage .emoji {
+    display: block;
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+
+.moodflow-stage.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--secondary-color);
+    font-weight: bold;
+    transform: scale(1.08);
+}
+.moodflow-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    border: none;
+    color: var(--secondary-color);
+    font-weight: bold;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: transform 0.2s;
+}
+
+.moodflow-btn:hover {
+    transform: scale(1.05);
+}
+
+.reaction-section {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.reaction-question {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.reaction-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.reaction-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.reaction-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: scale(1.1);
+}
+
+.reaction-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.personality-section {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.personality-title {
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.personality-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 12px;
+}
+
+.personality-bar-track {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.personality-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    transition: width 0.4s ease;
+}
+
+.personality-bar-label {
+    width: 46px;
+    text-align: right;
+    color: var(--text-secondary);
+}
+.recommended-section {
+    width: 100%;
+    max-width: 400px;
+}
+
+.recommended-title {
+    font-size: 15px;
+    margin-bottom: 12px;
+    text-align: left;
 }

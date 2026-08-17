@@ -67,7 +67,12 @@ const moodRowTitle = document.getElementById('moodRowTitle');
 const recentlyPlayedRow = document.getElementById('recentlyPlayedRow');
 const favoritesRow = document.getElementById('favoritesRow');
 const madeForYouRow = document.getElementById('madeForYouRow');
-
+const moodflowCarousel = document.getElementById('moodflowCarousel');
+const moodflowBtn = document.getElementById('moodflowBtn');
+const reactionButtons = document.getElementById('reactionButtons');
+const personalitySection = document.getElementById('personalitySection');
+const personalityBars = document.getElementById('personalityBars');
+const recommendedRow = document.getElementById('recommendedRow');
 // Player State
 let currentSongIndex = 0;
 let isPlaying = false;
@@ -77,6 +82,17 @@ let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
 let selectedMood = null;
 let recentlyPlayed = JSON.parse(localStorage.getItem('recentlyPlayed')) || [];
 
+// MoodFlow: a fixed emotional journey the user can step through
+const moodFlowStages = [
+    { key: 'sad',        label: '😔 Sad',        songMood: 'calm' },
+    { key: 'calm',       label: '😌 Calm',       songMood: 'calm' },
+    { key: 'happy',      label: '😊 Happy',      songMood: 'happy' },
+    { key: 'energetic',  label: '🔥 Energetic',  songMood: 'energetic' }
+];
+let moodFlowIndex = parseInt(localStorage.getItem('moodFlowIndex')) || 0;
+
+// Music Reaction history
+let reactions = JSON.parse(localStorage.getItem('reactions')) || [];
 // Gradient backgrounds used to fake album art for the mood/recent/favorite cards
 const CARD_GRADIENTS = [
     'linear-gradient(135deg, #1DB954, #1a936f)',
@@ -98,6 +114,9 @@ function init() {
     loadSong(0);
     audioPlayer.volume = 1;
     autoplayToggle.classList.add('active');
+    updateMoodFlowUI();
+    renderPersonality();
+    renderRecommendedRow();
     
     // Add favorite count badge
     const countBadge = document.createElement('span');
@@ -356,6 +375,147 @@ function renderPlaylist(filteredSongs = null) {
     });
 }
 // Toggle Favorite
+// ---------- MoodFlow ----------
+function updateMoodFlowUI() {
+    const stage = moodFlowStages[moodFlowIndex];
+
+    moodflowCarousel.innerHTML = '';
+    moodFlowStages.forEach((s, i) => {
+        const [emoji, ...rest] = s.label.split(' ');
+        const card = document.createElement('div');
+        card.className = 'moodflow-stage' + (i === moodFlowIndex ? ' active' : '');
+        card.innerHTML = `<span class="emoji">${emoji}</span>${rest.join(' ')}`;
+        moodflowCarousel.appendChild(card);
+    });
+
+    // Button text changes depending on where you are in the journey
+    moodflowBtn.textContent = (moodFlowIndex < moodFlowStages.length - 1)
+        ? "I'm feeling better →"
+        : "Feeling great 🔥";
+    moodflowBtn.disabled = moodFlowIndex === moodFlowStages.length - 1;
+
+    // Drive the existing "Made for your mood" row with this stage
+    selectedMood = stage.songMood;
+    moodButtons.querySelectorAll('.mood-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.mood === selectedMood)
+    );
+    renderMoodRow();
+}
+
+function advanceMoodFlow() {
+    if (moodFlowIndex < moodFlowStages.length - 1) {
+        moodFlowIndex++;
+        localStorage.setItem('moodFlowIndex', moodFlowIndex);
+        updateMoodFlowUI();
+    }
+}
+
+// ---------- Music Reaction ----------
+function recordReaction(type) {
+    reactions.push({ songIndex: currentSongIndex, type, time: Date.now() });
+    localStorage.setItem('reactions', JSON.stringify(reactions));
+    renderPersonality();
+    renderRecommendedRow();
+    updateMoodFlowFromReactions();
+
+    if (type === 'skip') {
+        playNext();
+    }
+}
+
+function updateMoodFlowFromReactions() {
+    const counts = {};
+    reactions.forEach(r => {
+        if (r.type === 'skip') return;
+        counts[r.type] = (counts[r.type] || 0) + 1;
+    });
+
+    let topType = null;
+    let topCount = 0;
+    Object.keys(counts).forEach(type => {
+        if (counts[type] > topCount) {
+            topCount = counts[type];
+            topType = type;
+        }
+    });
+
+    if (!topType) return;
+
+    const targetMoodKey = reactionToMood[topType];
+    const targetIndex = moodFlowStages.findIndex(s => s.key === targetMoodKey);
+
+    if (targetIndex !== -1 && targetIndex !== moodFlowIndex) {
+        moodFlowIndex = targetIndex;
+        localStorage.setItem('moodFlowIndex', moodFlowIndex);
+        updateMoodFlowUI();
+    }
+}
+
+function renderRecommendedRow() {
+    recommendedRow.innerHTML = '';
+
+    const reactionToMood = { love: 'happy', amazing: 'energetic', relaxing: 'calm', sleepy: 'sleepy' };
+    const counts = {};
+    reactions.forEach(r => {
+        if (r.type === 'skip') return;
+        counts[r.type] = (counts[r.type] || 0) + 1;
+    });
+
+    let topType = null;
+    let topCount = 0;
+    Object.keys(counts).forEach(type => {
+        if (counts[type] > topCount) {
+            topCount = counts[type];
+            topType = type;
+        }
+    });
+
+    const targetMood = topType ? reactionToMood[topType] : null;
+    const matches = targetMood
+        ? songs.filter(s => s.mood === targetMood)
+        : songs;
+
+    matches.slice(0, 4).forEach(song => {
+        recommendedRow.appendChild(createSongCard(songs.indexOf(song)));
+    });
+}
+
+function renderPersonality() {
+    if (reactions.length === 0) {
+        personalitySection.style.display = 'none';
+        return;
+    }
+    personalitySection.style.display = 'block';
+
+    const counts = { love: 0, amazing: 0, relaxing: 0, sleepy: 0, skip: 0 };
+    reactions.forEach(r => counts[r.type]++);
+    const total = reactions.length;
+
+    const labels = {
+        love: '❤️ Love it',
+        amazing: '🔥 Amazing',
+        relaxing: '😌 Relaxing',
+        sleepy: '😴 Sleepy',
+        skip: '⏭️ Skipped'
+    };
+
+    personalityBars.innerHTML = '';
+    Object.keys(labels).forEach(key => {
+        const percent = Math.round((counts[key] / total) * 100);
+        const row = document.createElement('div');
+        row.className = 'personality-bar-row';
+        row.innerHTML = `
+            <span style="width:90px; text-align:left;">${labels[key]}</span>
+            <div class="personality-bar-track">
+                <div class="personality-bar-fill" style="width:${percent}%"></div>
+            </div>
+            <span class="personality-bar-label">${percent}%</span>
+        `;
+        personalityBars.appendChild(row);
+    });
+}
+
+// Toggle Favorite
 function toggleFavorite(songIndex, button, item) {
     const index = favorites.indexOf(songIndex);
     
@@ -480,8 +640,21 @@ function setupEventListeners() {
     });
 
     // Volume
+    // Volume
     volumeSlider.addEventListener('input', (e) => {
         setVolume(e.target.value);
+    });
+
+    // MoodFlow button
+    moodflowBtn.addEventListener('click', advanceMoodFlow);
+
+    // Music Reaction buttons
+    reactionButtons.querySelectorAll('.reaction-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            reactionButtons.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            recordReaction(btn.dataset.reaction);
+        });
     });
 
     // Playlist Toggle
