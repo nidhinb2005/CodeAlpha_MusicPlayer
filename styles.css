@@ -1039,7 +1039,7 @@ body {
 /* ============ MOODFLOW + REACTIONS ============ */
 .moodflow-section {
     width: 100%;
-    max-width: 400px;
+    max-width: 480px;
     text-align: center;
     margin-top: 60px;
     margin-bottom: 20px;
@@ -1063,31 +1063,19 @@ body {
 }
 
 .moodflow-carousel {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
     padding: 4px 2px 12px;
-    scroll-behavior: smooth;
-}
-
-.moodflow-carousel::-webkit-scrollbar {
-    height: 5px;
-}
-
-.moodflow-carousel::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
-    border-radius: 3px;
 }
 
 .moodflow-stage {
-    flex-shrink: 0;
-    width: 90px;
-    padding: 12px 8px;
+    padding: 12px 6px;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.1);
     text-align: center;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-secondary);
     transition: all 0.3s;
 }
