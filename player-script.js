@@ -36,6 +36,26 @@ const songs = [
         mood: "sleepy"
     }
 ];
+// Fetch extra songs from Audius (free, no API key needed)
+const AUDIUS_HOST = 'https://discoveryprovider.audius.co';
+
+async function fetchAudiusSongs(limit = 10) {
+    try {
+        const response = await fetch(
+            `${AUDIUS_HOST}/v1/tracks/trending?app_name=NidhiMusicPlayer&limit=${limit}`
+        );
+        const data = await response.json();
+        return data.data.map(track => ({
+            title: track.title,
+            artist: track.user.name,
+            url: `${AUDIUS_HOST}/v1/tracks/${track.id}/stream?app_name=NidhiMusicPlayer`,
+            mood: 'happy'   // Audius doesn't tag mood, so default all to "happy" for now
+        }));
+    } catch (error) {
+        console.error('Failed to fetch Audius songs:', error);
+        return [];
+    }
+}
 
 // DOM Elements
 const audioPlayer = document.getElementById('audioPlayer');
@@ -705,6 +725,12 @@ function setupEventListeners() {
 
 
 // Initialize Player
-init();
+// Fetch extra songs from Audius, then start the player
+async function startApp() {
+    const audiusSongs = await fetchAudiusSongs(10);
+    songs.push(...audiusSongs);   // adds Audius tracks after your 5 existing ones
+    init();
+    console.log('Music Player Loaded! 🎵');
+}
 
-console.log('Music Player Loaded! 🎵');
+startApp();
