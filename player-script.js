@@ -1,3 +1,8 @@
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+
 // Your name - shown in the "Good morning" greeting
 const USER_NAME = "Nidhi";
 
@@ -34,6 +39,24 @@ const songs = [
         artist: "Cosmic Waves",
         url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
         mood: "sleepy"
+    },
+    {
+        title: "Bisilu Kudureyondu",
+        artist: "Rajesh Krishnan and Yogaraj Bhat",
+        url: "songs/BisiluKudureyondu.mp4",
+        mood: "calm"
+    },
+    {
+        title: "Ek zindagi",
+        artist: "Tanishka Sanghvi and Sachin-Jigar",
+        url: "songs/EkZindagi.mp4",
+        mood: "focused"
+    },
+    {
+        title: "Unstoppable",
+        artist: "Sia",
+        url: "songs/Unstoppable.mp4",
+        mood: "focused"
     }
 ];
 // Fetch extra songs from Audius (free, no API key needed)
@@ -93,6 +116,80 @@ const reactionButtons = document.getElementById('reactionButtons');
 const personalitySection = document.getElementById('personalitySection');
 const personalityBars = document.getElementById('personalityBars');
 const recommendedRow = document.getElementById('recommendedRow');
+
+// ---------- Auth ----------
+// ---------- Auth ----------
+const authOverlay = document.getElementById('authOverlay');
+const loginView = document.getElementById('loginView');
+const signupView = document.getElementById('signupView');
+const loginEmail = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
+const signupEmail = document.getElementById('signupEmail');
+const signupPassword = document.getElementById('signupPassword');
+const signupConfirmPassword = document.getElementById('signupConfirmPassword');
+const authLoginBtn = document.getElementById('authLoginBtn');
+const authSignupBtn = document.getElementById('authSignupBtn');
+const showSignup = document.getElementById('showSignup');
+const showLogin = document.getElementById('showLogin');
+const authError = document.getElementById('authError');
+const logoutBtn = document.getElementById('logoutBtn');
+let currentUserId = null;
+
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        currentUserId = user.uid;
+        authOverlay.style.display = 'none';
+        playlistContainer.classList.remove('open');
+        init();
+    } else {
+        currentUserId = null;
+        authOverlay.style.display = 'flex';
+        loginView.style.display = 'block';
+        signupView.style.display = 'none';
+        loginEmail.value = '';
+        loginPassword.value = '';
+        signupEmail.value = '';
+        signupPassword.value = '';
+        signupConfirmPassword.value = '';
+        authError.textContent = '';
+        audioPlayer.pause();
+        isPlaying = false;
+        playBtn.innerHTML = '<i class="fas fa-play"></i>';
+    }
+});
+
+showSignup.addEventListener('click', (e) => {
+    e.preventDefault();
+    authError.textContent = '';
+    loginView.style.display = 'none';
+    signupView.style.display = 'block';
+});
+
+showLogin.addEventListener('click', (e) => {
+    e.preventDefault();
+    authError.textContent = '';
+    signupView.style.display = 'none';
+    loginView.style.display = 'block';
+});
+
+authSignupBtn.addEventListener('click', () => {
+    authError.textContent = '';
+    if (signupPassword.value !== signupConfirmPassword.value) {
+        authError.textContent = 'Passwords do not match.';
+        return;
+    }
+    firebase.auth().createUserWithEmailAndPassword(signupEmail.value, signupPassword.value)
+        .catch(err => authError.textContent = err.message);
+});
+
+authLoginBtn.addEventListener('click', () => {
+    authError.textContent = '';
+    firebase.auth().signInWithEmailAndPassword(loginEmail.value, loginPassword.value)
+        .catch(err => authError.textContent = err.message);
+});
+logoutBtn.addEventListener('click', () => {
+    firebase.auth().signOut();
+});
 // Player State
 let currentSongIndex = 0;
 let isPlaying = false;
@@ -125,6 +222,7 @@ const CARD_GRADIENTS = [
 // Initialize
 // Initialize
 function init() {
+    loadUserFavoritesFromFirebase();
     setGreeting();
     renderPlaylist();
     renderMadeForYouRow();
@@ -139,12 +237,31 @@ function init() {
     renderRecommendedRow();
     
     // Add favorite count badge
-    const countBadge = document.createElement('span');
-    countBadge.className = 'favorites-count';
-    countBadge.textContent = favorites.length;
-    favoritesToggle.appendChild(countBadge);
+        // Add favorite count badge (only if not already present)
+    if (!favoritesToggle.querySelector('.favorites-count')) {
+        const countBadge = document.createElement('span');
+        countBadge.className = 'favorites-count';
+        countBadge.textContent = favorites.length;
+        favoritesToggle.appendChild(countBadge);
+    } else {
+        favoritesToggle.querySelector('.favorites-count').textContent = favorites.length;
+    }
 
     setupEventListeners();
+}
+// Load user favorites from Firebase
+async function loadUserFavoritesFromFirebase() {
+    if (!currentUserId) return;
+    
+    try {
+        const docSnap = await db.collection('users').doc(currentUserId).get();
+        if (docSnap.exists && docSnap.data().favorites) {
+            favorites = docSnap.data().favorites;
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+        }
+    } catch (error) {
+        console.log('Could not load favorites from Firebase:', error);
+    }
 }
 
 // Greeting - "Good morning/afternoon/evening, Name!"
@@ -394,6 +511,10 @@ function renderPlaylist(filteredSongs = null) {
         playlist.appendChild(item);
     });
 }
+
+
+
+
 // Toggle Favorite
 // ---------- MoodFlow ----------
 function updateMoodFlowUI() {
@@ -431,6 +552,7 @@ function advanceMoodFlow() {
 }
 
 // ---------- Music Reaction ----------
+const reactionToMood = { love: 'happy', amazing: 'energetic', relaxing: 'calm', sleepy: 'sleepy' };
 function recordReaction(type) {
     reactions.push({ songIndex: currentSongIndex, type, time: Date.now() });
     localStorage.setItem('reactions', JSON.stringify(reactions));
@@ -473,8 +595,6 @@ function updateMoodFlowFromReactions() {
 
 function renderRecommendedRow() {
     recommendedRow.innerHTML = '';
-
-    const reactionToMood = { love: 'happy', amazing: 'energetic', relaxing: 'calm', sleepy: 'sleepy' };
     const counts = {};
     reactions.forEach(r => {
         if (r.type === 'skip') return;
@@ -540,31 +660,36 @@ function toggleFavorite(songIndex, button, item) {
     const index = favorites.indexOf(songIndex);
     
     if (index > -1) {
-        // Remove from favorites
         favorites.splice(index, 1);
         button.classList.remove('favorited');
         item.classList.remove('favorite-highlight');
     } else {
-        // Add to favorites
         favorites.push(songIndex);
         button.classList.add('favorited');
         item.classList.add('favorite-highlight');
     }
     
-    // Save to localStorage
     localStorage.setItem('favorites', JSON.stringify(favorites));
-    
-    // Update favorite count
     updateFavoriteCount();
     renderFavoritesRow();
+    renderPlaylist(); 
+        // Also save to Firebase
+    if (currentUserId) {
+        db.collection('users').doc(currentUserId).update({
+            favorites: favorites,
+            lastUpdated: new Date()
+        }).catch(err => console.log('Firebase save error:', err));
+    } // ← ADD THIS LINE
 }
-
 // Update Favorite Count
 function updateFavoriteCount() {
-    const countElement = favoritesToggle.querySelector('.favorites-count');
-    if (countElement) {
-        countElement.textContent = favorites.length;
+    let badge = favoritesToggle.querySelector('.favorites-count');
+    if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'favorites-count';
+        favoritesToggle.appendChild(badge);
     }
+    badge.textContent = favorites.length;
 }
 
 // Get Favorites Only
@@ -729,7 +854,7 @@ function setupEventListeners() {
 async function startApp() {
     const audiusSongs = await fetchAudiusSongs(10);
     songs.push(...audiusSongs);   // adds Audius tracks after your 5 existing ones
-    init();
+    
     console.log('Music Player Loaded! 🎵');
 }
 

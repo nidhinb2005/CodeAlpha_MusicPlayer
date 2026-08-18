@@ -4,18 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Music Player - SoundWave</title>
-    <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+    apiKey: "AIzaSyBSQrxy9yFRpQ-AqYME50cb4BwEqbu-cCY",
+    authDomain: "musicplayer-b1dc2.firebaseapp.com",
+    projectId: "musicplayer-b1dc2",
+    storageBucket: "musicplayer-b1dc2.firebasestorage.app",
+    messagingSenderId: "384022896411",
+    appId: "1:384022896411:web:6c73732ee2245708affdbe",
+    measurementId: "G-VZ7X4EPZLE"
+  };
+        firebase.initializeApp(firebaseConfig);
+    </script>
 </head>
 <body>
+    <!-- Auth Overlay -->
+        <div class="auth-overlay" id="authOverlay">
+        <div class="auth-box">
+            <h2>🎧 SoundWave</h2>
+
+            <!-- Login View -->
+            <div id="loginView">
+                <input type="email" id="loginEmail" placeholder="Email" />
+                <input type="password" id="loginPassword" placeholder="Password" />
+                <button id="authLoginBtn">Login</button>
+                <p class="auth-switch">New here? <a href="#" id="showSignup">Sign Up</a></p>
+            </div>
+
+            <!-- Signup View -->
+            <div id="signupView" style="display:none;">
+                <input type="email" id="signupEmail" placeholder="Email" />
+                <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" />
+                <input type="password" id="signupConfirmPassword" placeholder="Confirm Password" />
+                <button id="authSignupBtn">Create Account</button>
+                <p class="auth-switch">Already have an account? <a href="#" id="showLogin">Login</a></p>
+            </div>
+
+            <p id="authError" class="auth-error"></p>
+        </div>
+    </div>
+
     <div class="player-wrapper">
         <!-- Player Header -->
         <div class="player-header">
-            <a href="index.html" class="back-btn">
+                        <a href="index.html" class="back-btn">
                 <i class="fas fa-arrow-left"></i>
             </a>
             <h1>Now Playing</h1>
-            <div class="header-spacer"></div>
+            <button id="logoutBtn" class="header-spacer" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
         </div>
 
         <!-- Player + Playlist Layout -->
@@ -202,7 +245,8 @@
 
     <!-- Hidden Audio Element -->
     <audio id="audioPlayer"></audio>
-
-    <script src="player-script.js"></script>
+    
+        
+<script src="player-script.js"></script>
 </body>
 </html>
